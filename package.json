@@ -1,0 +1,21 @@
+{
+  "name": "tradesphere",
+  "version": "1.0.0",
+  "description": "Full-stack stock market simulator - PERN stack",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start:server": "cd server && npm start",
+    "docs:pdf": "node docs/generate-pdf.cjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "marked": "^18.0.3",
+    "md-to-pdf": "^5.2.5",
+    "puppeteer": "^25.0.4"
+  }
+}
