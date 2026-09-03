@@ -1,15 +1,11 @@
 -- TradeSphere Database Schema
 -- Run this script in pgAdmin Query Tool (or psql) against your database.
-
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 -- Transaction type enum
-DO $$ BEGIN
-  CREATE TYPE transaction_type AS ENUM ('BUY', 'SELL');
+DO $$ BEGIN CREATE TYPE transaction_type AS ENUM ('BUY', 'SELL');
 EXCEPTION
-  WHEN duplicate_object THEN NULL;
+WHEN duplicate_object THEN NULL;
 END $$;
-
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -20,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Stocks table
 CREATE TABLE IF NOT EXISTS stocks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,7 +26,16 @@ CREATE TABLE IF NOT EXISTS stocks (
   volume DECIMAL(20, 2) DEFAULT 0 NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
+--stock symbols
+CREATE TABLE IF NOT EXISTS stock_symbols (
+  id SERIAL PRIMARY KEY,
+  symbol VARCHAR(20) UNIQUE NOT NULL,
+  company_name VARCHAR(255) NOT NULL,
+  exchange VARCHAR(100),
+  type VARCHAR(50),
+  currency VARCHAR(10),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 -- Portfolio table
 CREATE TABLE IF NOT EXISTS portfolio (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,7 +47,6 @@ CREATE TABLE IF NOT EXISTS portfolio (
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE (user_id, symbol)
 );
-
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -56,7 +59,6 @@ CREATE TABLE IF NOT EXISTS transactions (
   profit_loss DECIMAL(15, 2),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-
 -- Watchlist table
 CREATE TABLE IF NOT EXISTS watchlist (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -65,28 +67,19 @@ CREATE TABLE IF NOT EXISTS watchlist (
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   UNIQUE (user_id, symbol)
 );
-
 -- Indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_portfolio_user_id ON portfolio(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_watchlist_user_id ON watchlist(user_id);
-
 -- Auto-update updated_at on users
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW();
+RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 DROP TRIGGER IF EXISTS users_updated_at ON users;
-CREATE TRIGGER users_updated_at
-  BEFORE UPDATE ON users
-  FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
-
+CREATE TRIGGER users_updated_at BEFORE
+UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 DROP TRIGGER IF EXISTS portfolio_updated_at ON portfolio;
-CREATE TRIGGER portfolio_updated_at
-  BEFORE UPDATE ON portfolio
-  FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+CREATE TRIGGER portfolio_updated_at BEFORE
+UPDATE ON portfolio FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();

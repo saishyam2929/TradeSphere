@@ -6,8 +6,7 @@ async function syncNSEStocks() {
 
   try {
 
-    console.log("Fetching NSE stocks from Finnhub...");
-    console.log(env.finnhubApiKey);
+    console.log("Fetching US stocks from Finnhub...");
     const { data } = await axios.get(
       "https://finnhub.io/api/v1/stock/symbol",
       {

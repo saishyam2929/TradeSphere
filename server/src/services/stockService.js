@@ -16,6 +16,54 @@ const getSimulatedPrice = (symbol) => {
     volume: Math.floor(1000000 + base * 10000),
   };
 };
+const fetchStockSymbolsFromFinnhub = async () => {
+  if (!env.finnhubApiKey) return [];
+
+  try {
+    const { data } = await axios.get(
+      'https://finnhub.io/api/v1/stock/symbol',
+      {
+        params: {
+          exchange: 'US',
+          token: env.finnhubApiKey,
+        },
+        timeout: 10000,
+      }
+    );
+
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch stock symbols:', error.message);
+    return [];
+  }
+};
+export const syncStockSymbols = async () => {
+  const symbols = await fetchStockSymbolsFromFinnhub();
+
+  for (const stock of symbols) {
+    await query(
+      `
+      INSERT INTO stock_symbols
+        (symbol, company_name, exchange, type)
+      VALUES
+        ($1, $2, $3, $4)
+      ON CONFLICT (symbol)
+      DO UPDATE SET
+        company_name = EXCLUDED.company_name,
+        exchange = EXCLUDED.exchange,
+        type = EXCLUDED.type
+      `,
+      [
+        stock.symbol,
+        stock.description,
+        stock.exchange,
+        stock.type,
+      ]
+    );
+  }
+
+  console.log(`Synced ${symbols.length} stock symbols`);
+};
 
 const fetchFromFinnhub = async (symbol) => {
   if (!env.finnhubApiKey) return null;

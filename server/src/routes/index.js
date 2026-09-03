@@ -18,3 +18,13 @@ router.use('/watchlist', watchlistRoutes);
 router.use('/leaderboard', leaderboardRoutes);
 
 export default router;
+
+//stocks
+//watchlist
+//portfolio
+//transactions
+//trade
+//leaderboard
+//socketsystem
+//middlewres system
+//db schema

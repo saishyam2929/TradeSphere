@@ -18,12 +18,13 @@ const io = new Server(httpServer, {
   },
 });
 
-app.set('io', io);
+app.set('io', io); //this stores an instance of socketio in express 
+                   //which can be accessed later
 
-app.use(
+app.use(    //cors middleware setup
   cors({
     origin: env.clientUrl,
-    credentials: true,
+    credentials: true, //cookies and authentication allowed
   })
 );
 app.use(express.json());
